@@ -1,31 +1,31 @@
-import React, { useMemo, useState } from "react";
-import { Column, Id, Task } from "../types";
+import { useMemo, useState } from "react";
+import { Column, Id } from "../types";
 import PlusIcon from "../icons/PlusIcon";
 import ColumnContainer from "./ColumnContainer";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
-const defaultCols: Column[] = [
-  {
-    id: "todo",
-    title: "Todo",
-  },
-  {
-    id: "doing",
-    title: "Work in progress",
-  },
-  {
-    id: "done",
-    title: "Done",
-  },
-];
+// const defaultCols: Column[] = [
+//   {
+//     id: "todo",
+//     title: "Todo",
+//   },
+//   {
+//     id: "doing",
+//     title: "Work in progress",
+//   },
+//   {
+//     id: "done",
+//     title: "Done",
+//   },
+// ];
 
-const defaultTasks: Task[] = [
-  { id: "1", columnId: "todo", content: "Task 1" },
-  { id: "2", columnId: "todo", content: "Task 2" },
-  { id: "3", columnId: "todo", content: "Task 3" },
-];
+// const defaultTasks: Task[] = [
+//   { id: "1", columnId: "todo", content: "Task 1" },
+//   { id: "2", columnId: "todo", content: "Task 2" },
+//   { id: "3", columnId: "todo", content: "Task 3" },
+// ];
 
 const KanbanBoard = () => {
   const [columns, setColumns] = useState<Column[]>([]);
@@ -56,6 +56,14 @@ const KanbanBoard = () => {
     setColumns(filteredColumns);
   };
 
+  const updateColumn = (id: Id, title: string) => {
+    const newColumns = columns.map((col) => {
+      if (col.id !== id) return col;
+      return { ...col, title };
+    });
+    setColumns(newColumns);
+  };
+
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
   const onDragStart = (e: DragStartEvent) => {
@@ -66,7 +74,6 @@ const KanbanBoard = () => {
       return;
     }
   };
-
   const onDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
     console.log("drag end", active, over);
@@ -89,7 +96,7 @@ const KanbanBoard = () => {
           <div className="flex gap-4">
             <SortableContext items={columnsId}>
               {columns.map((col) => (
-                <ColumnContainer key={col.id} column={col} deleteColumn={deleteColumn} />
+                <ColumnContainer key={col.id} column={col} deleteColumn={deleteColumn} updateColumn={updateColumn} />
               ))}
             </SortableContext>
 
@@ -102,7 +109,7 @@ const KanbanBoard = () => {
             </button>
           </div>
 
-          {createPortal(<DragOverlay>{activeColumn && <ColumnContainer column={activeColumn} deleteColumn={deleteColumn} />}</DragOverlay>, document.body)}
+          {createPortal(<DragOverlay>{activeColumn && <ColumnContainer column={activeColumn} deleteColumn={deleteColumn} updateColumn={updateColumn} />}</DragOverlay>, document.body)}
         </div>
       </DndContext>
     </div>
