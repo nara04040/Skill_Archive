@@ -1,16 +1,20 @@
-import { Column, Id } from "../types";
+import { Column, Id, Task } from "../types";
 import TrashIcon from "../icons/TrashIcon";
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import TaskCard from "./TaskCard";
+import PlusIcon from "../icons/PlusIcon";
 
 interface Props {
   column: Column;
   deleteColumn: (id: Id) => void;
   updateColumn: (id: Id, title: string) => void;
+  tasks: Task[];
+  createNewTask: (columnId: Id) => void;
 }
 
-const ColumnContainer = ({ column, deleteColumn, updateColumn }: Props) => {
+const ColumnContainer = ({ column, deleteColumn, updateColumn, tasks, createNewTask }: Props) => {
   const [editMode, setEditMode] = useState(false);
 
   const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({
@@ -19,6 +23,10 @@ const ColumnContainer = ({ column, deleteColumn, updateColumn }: Props) => {
   });
 
   const style = { transition, transform: CSS.Transform.toString(transform) };
+
+  const tasksIds = useMemo(() => {
+    tasks.map((task) => task.id);
+  }, [tasks]);
 
   if (isDragging) {
     return (
@@ -79,8 +87,21 @@ const ColumnContainer = ({ column, deleteColumn, updateColumn }: Props) => {
           <TrashIcon />
         </button>
       </div>
-      <div className="flex flex-grow bg-white"></div>
-      <div>footer</div>
+      {/* tasks */}
+      <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto">
+        {tasks.map((task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+      <button
+        className="flex gap-2 items-center border-columnBackgroundColor border-2 rounded-md p-4 border-x-columnBackgroundColor hover:bg-mainBackgroundColor hover:text-rose-500 active:bg-black"
+        onClick={() => {
+          createNewTask(column.id);
+        }}
+      >
+        <PlusIcon />
+        Add Task
+      </button>
     </div>
   );
 };

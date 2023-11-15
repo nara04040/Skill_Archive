@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Column, Id } from "../types";
+import { Column, Id, Task } from "../types";
 import PlusIcon from "../icons/PlusIcon";
 import ColumnContainer from "./ColumnContainer";
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -29,6 +29,7 @@ import { createPortal } from "react-dom";
 
 const KanbanBoard = () => {
   const [columns, setColumns] = useState<Column[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const sensor = useSensors(
     useSensor(PointerSensor, {
@@ -38,6 +39,7 @@ const KanbanBoard = () => {
     })
   );
 
+  // Column
   const createNewColumn = () => {
     const columnToAdd: Column = {
       id: generatedId(),
@@ -66,6 +68,17 @@ const KanbanBoard = () => {
 
   const columnsId = useMemo(() => columns.map((col) => col.id), [columns]);
 
+  // Task
+  const createNewTask = () => {
+    const newTask: Task = {
+      id: generatedId(),
+      columnId: "todo",
+      content: `Task ${tasks.length + 1}`,
+    };
+    setTasks([...tasks, newTask]);
+    console.log(tasks);
+  };
+
   const onDragStart = (e: DragStartEvent) => {
     console.log("drag start", e);
 
@@ -87,7 +100,7 @@ const KanbanBoard = () => {
 
     if (activeId === overId) return;
   };
-  console.log(columns);
+  // console.log(columns);
 
   return (
     <div className="m-auto flex min-h-screen w-full items-center justify-center overflow-x-auto overflow-y-hidden px-[40px]">
@@ -96,10 +109,16 @@ const KanbanBoard = () => {
           <div className="flex gap-4">
             <SortableContext items={columnsId}>
               {columns.map((col) => (
-                <ColumnContainer key={col.id} column={col} deleteColumn={deleteColumn} updateColumn={updateColumn} />
+                <ColumnContainer
+                  key={col.id}
+                  column={col}
+                  deleteColumn={deleteColumn}
+                  updateColumn={updateColumn}
+                  tasks={tasks.filter((task) => task.columnId === col.id)}
+                  createNewTask={createNewTask}
+                />
               ))}
             </SortableContext>
-
             <button
               onClick={() => createNewColumn()}
               className="h-[60px] w-[350px] min-w-[350px] cursor-pointer rounded-lg bg-mainBackgroundColor border-2 border-columnBackgroundColor p-4 ring-rose-500 hover:ring-2 flex gap-2"
@@ -109,7 +128,20 @@ const KanbanBoard = () => {
             </button>
           </div>
 
-          {createPortal(<DragOverlay>{activeColumn && <ColumnContainer column={activeColumn} deleteColumn={deleteColumn} updateColumn={updateColumn} />}</DragOverlay>, document.body)}
+          {createPortal(
+            <DragOverlay>
+              {activeColumn && (
+                <ColumnContainer
+                  column={activeColumn}
+                  deleteColumn={deleteColumn}
+                  updateColumn={updateColumn}
+                  tasks={tasks.filter((task) => task.columnId === activeColumn.id)}
+                  createNewTask={createNewTask}
+                />
+              )}
+            </DragOverlay>,
+            document.body
+          )}
         </div>
       </DndContext>
     </div>
